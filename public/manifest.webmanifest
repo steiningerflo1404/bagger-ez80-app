@@ -1,7 +1,6 @@
 {
   "name": "Bagger EZ80 Maschinengemeinschaft",
   "short_name": "Bagger EZ80",
-  "description": "Digitale Erfassung von Betriebsstunden, Diesel und Abrechnung.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
