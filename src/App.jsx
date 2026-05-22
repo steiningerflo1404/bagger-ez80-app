@@ -1,175 +1,22 @@
 
-import React, { useState } from "react";
-
-const MACHINE_NAME = "Bagger EZ80";
-const SHEET_WEBAPP_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || "";
-
-const members = [
-  "Steininger",
-  "Zorn",
-  "Stockhammer",
-  "Kerschbaumer",
-  "Mayr",
-  "Passenbrunner",
-  "Zwicklhuber",
-  "Kremshuber",
-  "Staudinger",
-];
-
-function Field({ label, children }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      {children}
-    </label>
-  );
-}
-
-function Card({ children, className = "" }) {
-  return <div className={`card ${className}`}>{children}</div>;
-}
-
-export default function App() {
-  const [form, setForm] = useState({
-    datum: new Date().toISOString().slice(0, 10),
-    mitglied: "",
-    betriebsstunden: "",
-    diesel: "",
-    einsatzart: "innerbetrieblich",
-    bemerkung: "",
-  });
-
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-
-  async function saveEntry(event) {
-    event.preventDefault();
-    setMessage("");
-
-    if (!SHEET_WEBAPP_URL) {
-      setMessage("Google-Script-Link fehlt noch. Bitte VITE_GOOGLE_SCRIPT_URL in Vercel eintragen.");
-      return;
-    }
-
-    if (!form.datum || !form.mitglied || !form.betriebsstunden) {
-      alert("Bitte mindestens Datum, Mitglied und Betriebsstunden ausfüllen.");
-      return;
-    }
-
-    setSending(true);
-
-    const payload = {
-      maschine: MACHINE_NAME,
-      datum: form.datum,
-      mitglied: form.mitglied,
-      betriebsstunden: Number(form.betriebsstunden),
-      diesel: Number(form.diesel) || 0,
-      einsatzart: form.einsatzart,
-      bemerkung: form.bemerkung.trim(),
-      erfasstAm: new Date().toISOString(),
-    };
-
-    try {
-      await fetch(SHEET_WEBAPP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
-      });
-
-      setMessage("Eintrag wurde gespeichert.");
-      setForm({
-        datum: new Date().toISOString().slice(0, 10),
-        mitglied: "",
-        betriebsstunden: "",
-        diesel: "",
-        einsatzart: "innerbetrieblich",
-        bemerkung: "",
-      });
-    } catch (error) {
-      setMessage("Speichern fehlgeschlagen. Bitte Internetverbindung und Google-Script-Link prüfen.");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <div className="page">
-      <div className="container">
-        <header className="header">
-          <div>
-            <h1>Bagger EZ80</h1>
-            <p>QR-Code scannen, Daten eintragen, speichern. Die Daten landen automatisch in der Google-Tabelle.</p>
-          </div>
-        </header>
-
-        {message && <Card className="notice">{message}</Card>}
-
-        <main className="main-grid">
-          <Card>
-            <div className="card-head">
-              <div>
-                <h2>Neue Erfassung</h2>
-                <p>Kein Login, kein Passwort, keine E-Mail-Bestätigung.</p>
-              </div>
-              <div className="qr-symbol">▦</div>
-            </div>
-
-            <form onSubmit={saveEntry} className="form">
-              <div className="machine-pill"><strong>Maschine:</strong> {MACHINE_NAME}</div>
-
-              <Field label="Datum">
-                <input type="date" value={form.datum} onChange={(event) => setForm({ ...form, datum: event.target.value })} />
-              </Field>
-
-              <Field label="Mitglied / Fahrer">
-                <select value={form.mitglied} onChange={(event) => setForm({ ...form, mitglied: event.target.value })}>
-                  <option value="">Bitte Mitglied auswählen</option>
-                  {members.map((member) => <option key={member} value={member}>{member}</option>)}
-                </select>
-              </Field>
-
-              <Field label="Betriebsstunden">
-                <input type="number" min="0" step="0.25" placeholder="z. B. 2,5" value={form.betriebsstunden} onChange={(event) => setForm({ ...form, betriebsstunden: event.target.value })} />
-              </Field>
-
-              <Field label="Getankte Dieselmenge in Liter">
-                <input type="number" min="0" step="0.1" placeholder="z. B. 18" value={form.diesel} onChange={(event) => setForm({ ...form, diesel: event.target.value })} />
-              </Field>
-
-              <Field label="Einsatzart">
-                <select value={form.einsatzart} onChange={(event) => setForm({ ...form, einsatzart: event.target.value })}>
-                  <option value="innerbetrieblich">Innerbetrieblich — Standard, € 15/h</option>
-                  <option value="ueberbetrieblich">Überbetrieblich, € 50/h</option>
-                </select>
-              </Field>
-
-              <Field label="Bemerkung / Schäden">
-                <textarea placeholder="z. B. Schaden, Wartung, Besonderheiten" value={form.bemerkung} onChange={(event) => setForm({ ...form, bemerkung: event.target.value })} />
-              </Field>
-
-              <button className="primary" type="submit" disabled={sending}>
-                {sending ? "Speichert..." : "Eintrag speichern"}
-              </button>
-            </form>
-          </Card>
-
-          <Card className="wide">
-            <h2>Für den Kassier</h2>
-            <p>
-              Alle Einträge werden in der Google-Tabelle gesammelt. Dort kann man filtern, summieren,
-              nach Stichtag abrechnen und bei Bedarf als Excel oder PDF exportieren.
-            </p>
-
-            <div className="info-grid">
-              <div><strong>Maschine</strong><span>{MACHINE_NAME}</span></div>
-              <div><strong>Innerbetrieblich</strong><span>€ 15 / Stunde</span></div>
-              <div><strong>Überbetrieblich</strong><span>€ 50 / Stunde</span></div>
-              <div><strong>Speicher</strong><span>Google Tabelle</span></div>
-            </div>
-          </Card>
-        </main>
-      </div>
-    </div>
-  );
+import React,{useMemo,useState}from"react";
+const MACHINE_NAME="Bagger EZ80";
+const SHEET_WEBAPP_URL=import.meta.env.VITE_GOOGLE_SCRIPT_URL||"";
+const members=["Steininger","Zorn","Stockhammer","Kerschbaumer","Mayr","Passenbrunner","Zwicklhuber","Kremshuber","Staudinger","WARTUNG"];
+function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>;}
+export default function App(){
+ const today=new Date().toISOString().slice(0,10);
+ const[form,setForm]=useState({datumVon:today,datumBis:today,mitglied:"",stundenStart:"",stundenEnde:"",diesel:"",einsatzart:"innerbetrieblich",bemerkung:"",getankt:false,abgeschmiert:false});
+ const[message,setMessage]=useState(""); const[sending,setSending]=useState(false); const[loadingLast,setLoadingLast]=useState(false);
+ const gefahreneStunden=useMemo(()=>{const s=Number(form.stundenStart),e=Number(form.stundenEnde);if(!form.stundenStart||!form.stundenEnde||Number.isNaN(s)||Number.isNaN(e))return "";return Math.max(0,e-s)},[form.stundenStart,form.stundenEnde]);
+ const canSave=form.datumVon&&form.datumBis&&form.mitglied&&form.stundenStart!==""&&form.stundenEnde!==""&&Number(form.stundenEnde)>=Number(form.stundenStart)&&form.getankt&&form.abgeschmiert&&!sending;
+ async function takeLastValue(){setMessage("");if(!SHEET_WEBAPP_URL){setMessage("Google-Script-Link fehlt noch.");return}setLoadingLast(true);try{const r=await fetch(`${SHEET_WEBAPP_URL}?action=last&ts=${Date.now()}`);const d=await r.json();if(!d.ok||d.lastEnde===""||d.lastEnde==null){setMessage("Es wurde noch kein letzter Stundenzähler gefunden.");return}setForm(c=>({...c,stundenStart:String(d.lastEnde).replace(",",".")}));setMessage(`Letzter Stundenzähler übernommen: ${d.lastEnde}`)}catch{setMessage("Letzter Wert konnte nicht geladen werden. Bitte Google-Script neu bereitstellen.")}finally{setLoadingLast(false)}}
+ async function saveEntry(event){event.preventDefault();setMessage("");if(!SHEET_WEBAPP_URL){setMessage("Google-Script-Link fehlt noch.");return}if(!canSave){alert("Bitte alle Pflichtfelder ausfüllen und beide Häkchen setzen.");return}setSending(true);const payload={maschine:MACHINE_NAME,datumVon:form.datumVon,datumBis:form.datumBis,mitglied:form.mitglied,stundenStart:Number(form.stundenStart),stundenEnde:Number(form.stundenEnde),betriebsstunden:Number(gefahreneStunden),diesel:Number(form.diesel)||0,einsatzart:form.einsatzart,getankt:form.getankt,abgeschmiert:form.abgeschmiert,bemerkung:form.bemerkung.trim(),erfasstAm:new Date().toISOString()};try{await fetch(SHEET_WEBAPP_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});setMessage("Eintrag wurde gespeichert.");setForm({datumVon:today,datumBis:today,mitglied:"",stundenStart:"",stundenEnde:"",diesel:"",einsatzart:"innerbetrieblich",bemerkung:"",getankt:false,abgeschmiert:false})}catch{setMessage("Speichern fehlgeschlagen. Bitte Internetverbindung prüfen.")}finally{setSending(false)}}
+ return <div className="page"><main className="app-card"><header className="top"><div className="logo">🚜</div><div><h1>{MACHINE_NAME}</h1><p>Stundenerfassung</p></div></header>{message&&<div className="message">{message}</div>}<form onSubmit={saveEntry} className="form">
+ <section className="section"><h2>Zeitraum</h2><div className="grid two"><Field label="Von"><input type="date" value={form.datumVon} onChange={e=>setForm({...form,datumVon:e.target.value})}/></Field><Field label="Bis"><input type="date" value={form.datumBis} onChange={e=>setForm({...form,datumBis:e.target.value})}/></Field></div></section>
+ <section className="section"><h2>Einsatz</h2><Field label="Mitglied / Fahrer"><select value={form.mitglied} onChange={e=>setForm({...form,mitglied:e.target.value})}><option value="">Bitte Mitglied auswählen</option>{members.map(m=><option key={m} value={m}>{m}</option>)}</select></Field><Field label="Einsatzart"><select value={form.einsatzart} onChange={e=>setForm({...form,einsatzart:e.target.value})}><option value="innerbetrieblich">Innerbetrieblich — € 15/h</option><option value="ueberbetrieblich">Überbetrieblich — € 50/h</option></select></Field></section>
+ <section className="section"><h2>Betriebsstunden</h2><button type="button" className="secondary" onClick={takeLastValue} disabled={loadingLast}>{loadingLast?"Lade letzten Wert...":"Letzten Wert übernehmen"}</button><div className="grid two"><Field label="Stundenzähler Beginn"><input type="number" min="0" step="0.1" placeholder="z. B. 1250,5" value={form.stundenStart} onChange={e=>setForm({...form,stundenStart:e.target.value})}/></Field><Field label="Stundenzähler Ende"><input type="number" min="0" step="0.1" placeholder="z. B. 1253,0" value={form.stundenEnde} onChange={e=>setForm({...form,stundenEnde:e.target.value})}/></Field></div><div className={Number(form.stundenEnde)<Number(form.stundenStart)?"result error":"result"}><span>Gefahrene Stunden</span><strong>{gefahreneStunden===""?"—":`${Number(gefahreneStunden).toFixed(1)} h`}</strong></div></section>
+ <section className="section"><h2>Kontrolle</h2><Field label="Getankte Dieselmenge in Liter"><input type="number" min="0" step="0.1" placeholder="z. B. 18" value={form.diesel} onChange={e=>setForm({...form,diesel:e.target.value})}/></Field><label className="check"><input type="checkbox" checked={form.getankt} onChange={e=>setForm({...form,getankt:e.target.checked})}/><span>Getankt</span></label><label className="check"><input type="checkbox" checked={form.abgeschmiert} onChange={e=>setForm({...form,abgeschmiert:e.target.checked})}/><span>Abgeschmiert</span></label></section>
+ <section className="section"><Field label="Bemerkung / Schäden"><textarea placeholder="z. B. Schaden, Wartung, Besonderheiten" value={form.bemerkung} onChange={e=>setForm({...form,bemerkung:e.target.value})}/></Field></section>
+ <button className="primary" type="submit" disabled={!canSave}>{sending?"Speichert...":"Eintrag speichern"}</button></form><footer>© by Steininger Flo</footer></main></div>
 }

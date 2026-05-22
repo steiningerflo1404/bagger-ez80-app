@@ -1,43 +1,15 @@
-# Bagger EZ80 App mit Google Tabelle
+# Bagger EZ80 App - Version 3
 
-Diese Version verwendet keine Supabase-Datenbank mehr.
+Neu:
+- Fahrer WARTUNG
+- Button Letzten Wert übernehmen
+- liest den letzten Stundenzähler Ende aus Google Tabelle
+- Footer: © by Steininger Flo
 
-## So funktioniert es
+Nach Update:
+1. Dateien auf GitHub hochladen und alte Version ersetzen
+2. In Google Apps Script den Code aus google-apps-script/Code.gs komplett ersetzen
+3. Apps Script neu bereitstellen: Bereitstellen -> Bereitstellungen verwalten -> Stift -> Neue Version -> Bereitstellen
+4. Vercel redeployen
 
-- App läuft über Vercel-Link
-- Mitglieder öffnen per QR-Code
-- Daten werden in eine Google-Tabelle geschrieben
-- Kassier arbeitet direkt in der Google-Tabelle
-
-## Vercel Environment Variable
-
-In Vercel muss nur eine Variable gesetzt werden:
-
-```text
-VITE_GOOGLE_SCRIPT_URL
-```
-
-Wert ist der Web-App-Link aus Google Apps Script.
-
-## Google Tabelle einrichten
-
-1. Neue Google Tabelle erstellen
-2. Name z. B. `Bagger EZ80 Stundenliste`
-3. Erweiterungen → Apps Script
-4. Inhalt aus `google-apps-script/Code.gs` einfügen
-5. Speichern
-6. Bereitstellen → Neue Bereitstellung
-7. Typ: Web-App
-8. Ausführen als: Ich
-9. Zugriff: Jeder
-10. Bereitstellen
-11. Web-App-URL kopieren
-12. In Vercel als `VITE_GOOGLE_SCRIPT_URL` eintragen
-13. Vercel neu deployen
-
-## Vorteile
-
-- kein Supabase
-- keine Edge Functions
-- kein Login
-- sehr einfach zu warten
+VITE_GOOGLE_SCRIPT_URL bleibt gleich.
