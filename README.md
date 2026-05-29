@@ -1,10 +1,11 @@
-# Bagger EZ80 App - Version 4
+# Bagger EZ80 App - Version 6
 
-Fix:
-- Kommazahlen wie 0,5 werden korrekt erkannt
-- Beträge unter einer Stunde werden korrekt berechnet
-- Google Apps Script berechnet Beginn/Ende sauber neu
-- Eingabefelder akzeptieren Komma und Punkt
+Neu:
+- Großes Hinweisfeld: "Abschmieren in X Stunden"
+- Nach "Letzten Wert übernehmen" wird der Abschmierstatus sofort groß angezeigt
+- Wenn der neue End-Stundenzähler in den Bereich ab 6 Stunden seit letzter Abschmierung kommt, muss "Abgeschmiert" angehakt werden
+- Bei 8 Stunden oder mehr wird ebenfalls Abschmieren verlangt
+- Wird "Abgeschmiert" angehakt, startet der 8h-Zyklus neu
 
 Update:
 1. Dateien auf GitHub hochladen und alte Version ersetzen
